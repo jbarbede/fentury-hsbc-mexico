@@ -17,7 +17,6 @@ require('./js/pixel.js');
 // Font Awesome
 require('@fortawesome/fontawesome-free/scss/fontawesome.scss');
 require('@fortawesome/fontawesome-free/scss/solid.scss');
-require('@fortawesome/fontawesome-free/scss/brands.scss');
 
 // Extension
 require('./scss/project.scss');

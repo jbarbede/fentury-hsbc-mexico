@@ -9,9 +9,13 @@ chrome.alarms.onAlarm.addListener(function() {
 
     const keys = Object.keys(window.localStorage);
 
-    for (let i = 0; i < keys.length; i++) {
-        console.log('Checking new orders for ASIN ' + keys[i] + '...');
-        duplicatedOrdersDetector.setAsin(keys[i]);
-        duplicatedOrdersDetector.process();
+    if (keys.length > 0) {
+        for (let i = 0; i < keys.length; i++) {
+            console.log('Checking new orders for ASIN ' + keys[i] + '...');
+            duplicatedOrdersDetector.setAsin(keys[i]);
+            duplicatedOrdersDetector.process();
+        }
+    } else {
+        console.log('No ASINs to check.');
     }
 });

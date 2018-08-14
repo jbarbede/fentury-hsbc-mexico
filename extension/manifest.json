@@ -21,7 +21,7 @@
   },
   "content_security_policy": "script-src 'self' https://connect.facebook.net; object-src 'self'",
   "permissions": [
-    "alarms",
+    "alarms", "notifications",
     "*://sellercentral.amazon.com/orders-api*",
     "*://sellercentral.amazon.com/hz/orders*"
   ]

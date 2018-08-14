@@ -132,13 +132,25 @@ export default class DuplicatedOrdersDetector {
             if (order.amazonOrderId.charAt(0) !== 'S') {
                 if (order.orderFulfillmentStatus === 'Pending' && this.pendingOrders.indexOf(order.amazonOrderId) === -1) {
                     this.pendingOrders.push(order.amazonOrderId);
+                    chrome.notifications.create({
+                        type: 'basic',
+                        title: 'New order ' + order.amazonOrderId,
+                        iconUrl: 'icons/48.png',
+                        message: 'A new order ' + order.amazonOrderId + ' has been created by a buyer',
+                        requireInteraction: true
+                    });
                 } else if (order.orderFulfillmentStatus !== 'Pending' && this.pendingOrders.indexOf(order.amazonOrderId) !== -1) {
-                    if (order.orderFulfillmentStatus !== 'PaymentComplete') {
-                        alert("New status for order " + order.amazonOrderId);
-                    } else {
-                        alert("Order " + order.amazonOrderId + " has been paid.");
+                    if (order.orderFulfillmentStatus === 'PaymentComplete') {
                         this.pendingOrders.splice(this.pendingOrders.indexOf(order.amazonOrderId), 1);
                     }
+
+                    chrome.notifications.create({
+                        type: 'basic',
+                        title: 'New status for order ' + order.amazonOrderId,
+                        iconUrl: 'icons/48.png',
+                        message: 'The status for the order ' + order.amazonOrderId + ' has been changed to ' + order.orderFulfillmentStatus + '.',
+                        requireInteraction: true
+                    });
                 }
                 const q = $.ajax({ url: ORDER_URL + order.amazonOrderId, method: 'get' })
                     .fail((error) => console.error(error));
