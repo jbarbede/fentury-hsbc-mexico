@@ -1,0 +1,31 @@
+body {
+    width: 600px;
+    font-family: Roboto,sans-serif;
+}
+
+.container-fluid {
+    height: 438px;
+    overflow: hidden;
+    padding: 15px;
+}
+
+#loading {
+    height: 408px;
+}
+
+#signed-in {
+    display: none;
+}
+
+#check-asin-form {
+    margin: 115px 0;
+}
+
+#sign-in {
+    display: none;
+    height: 408px;
+}
+
+#results {
+    height: 318px;
+}
