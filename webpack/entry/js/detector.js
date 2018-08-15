@@ -1,15 +1,13 @@
+import Extension from './extension';
 import OrderPuller from './puller';
 
 const ORDER_URL = 'https://sellercentral.amazon.com/hz/orders/details?_encoding=UTF8&orderId=';
 
 export default class DuplicatedOrdersDetector {
 
-    constructor() {
+    constructor(db) {
+        this.db = db;
         this.init();
-    }
-
-    setAsin(asin) {
-        this.asin = asin;
     }
 
     init() {
@@ -19,29 +17,52 @@ export default class DuplicatedOrdersDetector {
         this.totalOrders = 0;
         this.processedOrders = 0;
         this.skippedOrders = 0;
-        this.pulledOrders = [];
         this.duplicatedOrders = [];
         this.promotionOrders = [];
         this.pendingOrders = [];
-        this.checkAccess();
+        this.queries = [];
+        this.stop = false;
     }
 
-    checkAccess() {
-        OrderPuller.query(this.startDate, this.endDate, 1, 0).then(() => {
-            $('#signed-in').fadeIn();
-        }).fail(() => {
-            $('#sign-in').addClass('d-flex');
-        }).always(() => $('#loading').remove());
+    getDuplicatedOrders() {
+        return this.duplicatedOrders;
     }
 
-    initHtml() {
-        const $html = $('body');
-        $html.find('input[name=asin]').val('');
-        $html.find('form').slideDown(() => {
-            $html.find('.progress-bar').addClass('progress-bar-animated').css('width', 0);
-            $html.find('#results h1').html('');
-            $html.find('#duplicated-orders').html('0');
-            $html.find('#buttons').html('<button id="btn-stop" type="button" class="btn btn-danger btn-lg btn-block">Stop</button>');
+    setAsin(asin) {
+        this.asin = asin;
+    }
+
+    getAsinData() {
+        let deferred = $.Deferred();
+        this.db.get(this.asin).then((doc) => {
+            //The ASIN is already tracked.
+            deferred.resolve(doc);
+        }).catch((error) => {
+            //The ASIN is not tracked yet.
+            deferred.resolve(null);
+        });
+
+        return deferred.promise();
+    }
+
+    setAsinData() {
+        return this.getAsinData().then((doc) => {
+            //The ASIN already exists in the db, update it.
+            if (doc) {
+                doc.startDate = this.endDate;
+                doc.pendingOrders = this.pendingOrders;
+                doc.promotionOrders = this.promotionOrders;
+
+                return this.db.put(doc);
+            }
+
+            //The ASIN doesn't exist yet in the db, create it.
+            return this.db.put({
+                _id: this.asin,
+                startDate: this.endDate,
+                pendingOrders: this.pendingOrders,
+                promotionOrders: this.promotionOrders
+            });
         });
     }
 
@@ -52,7 +73,7 @@ export default class DuplicatedOrdersDetector {
             return false;
         }
 
-        const asin = $asin.text().replace(/(\r\n|\n|\r)/gm, '').trim().replace(/ +(?= )/g, '');
+        const asin = Extension.cleanText($asin.text());
         if (asin !== this.asin) {
             console.log('Order ' + orderId + ' - row for ASIN ' + asin + ' skipped: this is a different product.');
             return false;
@@ -126,7 +147,6 @@ export default class DuplicatedOrdersDetector {
     }
 
     processOrders(orders) {
-        let queries = [];
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             if (order.amazonOrderId.charAt(0) !== 'S') {
@@ -136,8 +156,7 @@ export default class DuplicatedOrdersDetector {
                         type: 'basic',
                         title: 'New order ' + order.amazonOrderId,
                         iconUrl: 'icons/48.png',
-                        message: 'A new order ' + order.amazonOrderId + ' has been created by a buyer',
-                        requireInteraction: true
+                        message: 'A new order ' + order.amazonOrderId + ' has been created by a buyer'
                     });
                 } else if (order.orderFulfillmentStatus !== 'Pending' && this.pendingOrders.indexOf(order.amazonOrderId) !== -1) {
                     if (order.orderFulfillmentStatus === 'PaymentComplete') {
@@ -154,7 +173,7 @@ export default class DuplicatedOrdersDetector {
                 }
                 const q = $.ajax({ url: ORDER_URL + order.amazonOrderId, method: 'get' })
                     .fail((error) => console.error(error));
-                queries.push(q);
+                this.queries.push(q);
             } else {
                 console.warn('Order skipped: ' + order.amazonOrderId);
                 this.skippedOrders++;
@@ -162,8 +181,8 @@ export default class DuplicatedOrdersDetector {
             }
         }
 
-        return $.when(...queries).done(() => {
-            $.each(queries, (i, query) => {
+        return $.when(...this.queries).done(() => {
+            $.each(this.queries, (i, query) => {
                 this.processOrder(query.responseText);
             });
         });
@@ -174,6 +193,10 @@ export default class DuplicatedOrdersDetector {
 
         const $html = $("#results");
 
+        if (this.stop) {
+            return $.Deferred().resolve().promise();
+        }
+
         return OrderPuller.query(this.startDate, this.endDate, limit, offset, this.asin)
             .then((response) => {
                 this.totalOrders = response.total;
@@ -183,7 +206,7 @@ export default class DuplicatedOrdersDetector {
                     return this.processOrders(response.orders);
                 }
 
-                return $.Deferred().promise();
+                return $.Deferred().resolve().promise();
             })
             .then(() => {
                 this.processedOrders += limit;
@@ -191,11 +214,11 @@ export default class DuplicatedOrdersDetector {
                 $html.find('.progress-bar').css('width', percent);
                 if (this.processedOrders < this.totalOrders) {
                     $html.find('h1').html(this.processedOrders + ' / ' + this.totalOrders);
-                    this.processNewOrders(limit, this.processedOrders);
+                    return this.processNewOrders(limit, this.processedOrders);
                 } else {
                     $html.find('h1').html(this.totalOrders + ' / ' + this.totalOrders);
                     this.detectDuplicates();
-                    this.finish();
+                    return this.setAsinData();
                 }
             });
     }
@@ -213,82 +236,54 @@ export default class DuplicatedOrdersDetector {
         }
     }
 
-    getAsinData() {
-        let date = new Date();
-        let data = window.localStorage.getItem(this.asin);
-        if (data) {
-            data = JSON.parse(data);
-            this.endDate = date.valueOf();
-            date.setDate(date.getDate() - 3);
-            this.startDate = date.valueOf();
-            //this.startDate = data.startDate;
-            this.pendingOrders = data.pendingOrders;
-            this.promotionOrders = data.promotionOrders;
-        } else {
-            this.endDate = date.valueOf();
-            date.setMonth(date.getMonth() - 1);
-            this.startDate = date.valueOf();
-            this.pendingOrders = [];
-            this.promotionOrders = [];
-        }
-    }
-
-    setAsinData() {
-        window.localStorage.setItem(this.asin, JSON.stringify({
-            startDate: this.endDate,
-            pendingOrders: this.pendingOrders,
-            promotionOrders: this.promotionOrders
-        }))
-    }
-
     process() {
-        //Load orders previously stored.
-        this.getAsinData();
+        //Load orders previously stored for the ASIN and pull recent orders.
+        return this.getAsinData().then((doc) => {
+            let date = new Date();
+            if (doc) {
+                this.endDate = date.valueOf();
+                date.setDate(date.getDate() - 3);
+                this.startDate = date.valueOf();
+                this.pendingOrders = doc.pendingOrders;
+                this.promotionOrders = doc.promotionOrders;
+            } else {
+                this.endDate = date.valueOf();
+                date.setMonth(date.getMonth() - 1);
+                this.startDate = date.valueOf();
+                this.pendingOrders = [];
+                this.promotionOrders = [];
+            }
 
-        //Process new orders.
-        this.processNewOrders();
-    }
-
-    signIn() {
-        this.stopProcess();
-        $('#signed-in').fadeOut('fast', () => {
-            $('#sign-in').addClass('d-flex');
+            return this.processNewOrders();
         });
     }
 
-    finish() {
-        this.setAsinData();
-        const $html = $("#results");
-        $html.find('.progress-bar').removeClass('progress-bar-animated');
-        $html.find('#buttons').html('<div class="row">' +
-            '<div class="col-6">' +
-            this.generateDownloadButton() +
-            '</div>' +
-            '<div class="col-6">' +
-            '<button id="btn-reset" type="button" class="btn btn-secondary btn-lg btn-block">New Match</button>' +
-            '</div>' +
-            '</div>');
-    }
-
-    generateDownloadButton() {
-        const now = new Date().toUTCString().replace(',', '').replace(/[:\s+]/g, '-').toLowerCase();
-        let csvContent = "data:text/csv;charset=utf-8,";
-        csvContent += "Order ID,Buyer Name,Address\n";
-        this.duplicatedOrders.forEach((data) => {
-            csvContent += data[0].orderId + "," + data[0].buyerName + "," + data[0].address + "\n";
+    processAll() {
+        this.db.allDocs().then((docs) => {
+            for (let i = 0; i < docs.rows.length; i++) {
+                const row = docs.rows[i];
+                this.setAsin(row.id);
+                this.process();
+            }
         });
-        const encodedUri = encodeURI(csvContent);
-
-        return '<a id="download" href="' + encodedUri + '" class="btn btn-danger btn-lg btn-block" ' +
-            'download="email-matching-' + now + '.csv" target="_blank">Download</a>';
     }
 
     reset() {
         this.init();
-        this.initHtml();
+
+        return $.Deferred().resolve().promise();
     }
 
     stopProcess() {
-        this.finish();
+        //Set the stop flag.
+        this.stop = true;
+
+        //Stop any AJAX query still running.
+        for (let i = 0; i < this.queries.length; i++) {
+            this.queries[i].abort();
+        }
+
+        return $.Deferred().resolve().promise();
     }
+
 }

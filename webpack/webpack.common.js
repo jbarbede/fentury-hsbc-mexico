@@ -25,13 +25,14 @@ module.exports = {
             { test: /\.(eot|woff|ttf|woff2)/, loader: 'file-loader?name=fonts/[name].[ext]' },
             { test: /jquery\.js$/, loader: 'expose-loader?jQuery!expose-loader?$' },
             { test: /popper\.js$/, loader: 'expose-loader?Popper' },
-            { test: /bootstrap\.js$/, loader: 'expose-loader?Bootstrap' }
+            { test: /bootstrap\.js$/, loader: 'expose-loader?Bootstrap' },
+            { test: /pouchdb\.js$/, loader: 'expose-loader?PouchDB' }
         ]
     },
     plugins: [
         new HtmlWebpackPlugin({
-            filename: path.join(extensionPath, 'extension.html'),
-            template: path.join(libPath, 'extension.tpl'),
+            filename: path.join(extensionPath, 'popup.html'),
+            template: path.join(libPath, 'popup.tpl'),
             inject: false
         }),
         new webpack.optimize.OccurrenceOrderPlugin()

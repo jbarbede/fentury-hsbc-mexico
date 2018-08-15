@@ -1,21 +1,35 @@
 import DuplicatedOrdersDetector from "./detector";
+import Extension from "./extension";
 
-chrome.alarms.create({
+const SELLER_CENTRAL_URL = '://sellercentral.amazon.com';
+
+chrome.alarms.create('orders', {
     periodInMinutes: 1.0
 });
 
-chrome.alarms.onAlarm.addListener(function() {
-    const duplicatedOrdersDetector = new DuplicatedOrdersDetector();
+chrome.alarms.create('tab', {
+    periodInMinutes: 60.0
+});
 
-    const keys = Object.keys(window.localStorage);
-
-    if (keys.length > 0) {
-        for (let i = 0; i < keys.length; i++) {
-            console.log('Checking new orders for ASIN ' + keys[i] + '...');
-            duplicatedOrdersDetector.setAsin(keys[i]);
-            duplicatedOrdersDetector.process();
-        }
-    } else {
-        console.log('No ASINs to check.');
+chrome.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name === 'orders') {
+        const extension = new Extension();
+        extension.checkSellerCentral().then(() => {
+            const detector = new DuplicatedOrdersDetector(extension.getDb());
+            detector.processAll();
+        }).fail(() => {
+            console.log("The seller is not signed in Amazon Seller Central.");
+        });
+    } else if (alarm.name === 'tab') {
+        chrome.tabs.query({
+            url: '*' + SELLER_CENTRAL_URL + '/*'
+        }, (tabs) => {
+            if (tabs.length > 0) {
+                chrome.tabs.reload(tabs[0].id);
+                console.log('Seller Central tab reloaded');
+            } else {
+                console.log("No Seller Central tab opened.");
+            }
+        });
     }
 });

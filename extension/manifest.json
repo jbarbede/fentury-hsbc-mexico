@@ -1,7 +1,7 @@
 {
   "name": "ZonDuplicatedOrders",
   "short_name": "ZonDuplicatedOrders",
-  "version": "0.0.5",
+  "version": "0.0.1",
   "manifest_version": 2,
   "description": "Find easily duplicated Amazon orders.",
   "homepage_url": "https://zonpages.com",
@@ -13,7 +13,7 @@
   "browser_action": {
     "default_icon": "icons/19.png",
     "default_title": "ZonDuplicatedOrders",
-    "default_popup": "extension.html"
+    "default_popup": "popup.html"
   },
   "background": {
     "scripts": ["assets/background.js"],
@@ -21,7 +21,7 @@
   },
   "content_security_policy": "script-src 'self' https://connect.facebook.net; object-src 'self'",
   "permissions": [
-    "alarms", "notifications",
+    "alarms", "notifications", "tabs",
     "*://sellercentral.amazon.com/orders-api*",
     "*://sellercentral.amazon.com/hz/orders*"
   ]
