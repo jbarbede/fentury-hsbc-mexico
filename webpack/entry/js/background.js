@@ -1,4 +1,4 @@
-import DuplicatedOrdersDetector from "./detector";
+import TransactionsImporter from "./importer";
 import Extension from "./extension";
 
 const SELLER_CENTRAL_URL = '://sellercentral.amazon.com';
@@ -14,9 +14,9 @@ chrome.alarms.create('tab', {
 chrome.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === 'orders') {
         const extension = new Extension();
-        extension.checkSellerCentral().then(() => {
-            const detector = new DuplicatedOrdersDetector(extension.getDb());
-            detector.processAll();
+        extension.checkHSBCMexico().then(() => {
+            const importer = new TransactionsImporter();
+            importer.processAll();
         }).fail(() => {
             console.log("The seller is not signed in Amazon Seller Central.");
         });

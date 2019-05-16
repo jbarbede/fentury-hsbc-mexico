@@ -3,7 +3,7 @@
 
     <head>
 
-        <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Rubik" rel="stylesheet">
 
         <script type="text/javascript" src="assets/browser_action.js"></script>
 
@@ -19,7 +19,7 @@
 
                     <i class="fa fa-spin fa-spinner fa-7x mb-3"></i>
 
-                    Checking access to your Amazon seller central account...
+                    Checking access to your HSBC Mexico bank account...
 
                 </div>
 
@@ -27,8 +27,8 @@
 
             <div id="sign-in" class="align-items-center justify-content-center">
 
-                <a href="https://sellercentral.amazon.com" class="btn btn-primary btn-lg" target="_blank">
-                    Sign In Amazon Seller Central
+                <a href="https://www.security.online-banking.hsbc.com.mx/gsa/SECURITY_LOGON_PAGE/" class="btn btn-primary btn-lg" target="_blank">
+                    Sign In HSBC Mexico
                 </a>
 
             </div>
@@ -36,32 +36,19 @@
             <div id="signed-in">
 
                 <div class="alert alert-info">
-                    <i class="fa fa-info-circle"></i> Press the button below to start detecting duplicated orders.
-                    We will process orders generated for the last month.
+                    <i class="fa fa-info-circle"></i> Press the button below to start importing transactions from HSBC Mexico.
+                    We will process transactions created during the last 30 days.
                 </div>
 
-                <form id="check-asin-form" method="post">
-
-                    <div class="form-group">
-
-                        <label class="sr-only" for="asin">ASIN to check</label>
-
-                        <div class="controls">
-
-                            <input type="text" id="asin" name="asin" placeholder="Enter the ASIN to check"
-                                   class="form-control" autofocus required>
-
-                        </div>
-
-                    </div>
+                <form id="pull-transactions-form" method="post">
 
                     <button type="submit" class="btn btn-primary btn-lg btn-block">
-                        Start Detector
+                        Pull transactions
                     </button>
 
                 </form>
 
-                <div id="results" class="d-flex flex-column justify-content-between">
+                <!--<div id="results" class="d-flex flex-column justify-content-between">
 
                     <div id="processed-orders" class="text-center py-4">
 
@@ -110,7 +97,7 @@
 
                 </div>
 
-            </div>
+            </div>-->
 
         </div>
 

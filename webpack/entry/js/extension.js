@@ -1,40 +1,22 @@
-const MERCHANT_URL = 'https://sellercentral.amazon.com/trim/component/merchant-marketplace-switcher';
+const DASHBOARD_URL = 'https://www.services.online-banking.hsbc.com.mx/gpib/group/gpib/cmn/layouts/default.html?uid=dashboard';
 
 export default class Extension {
 
-    constructor() {
-        this.db = null;
-    }
+    constructor() { }
 
-    getDb() {
-        return this.db;
-    }
-
-    checkSellerCentral() {
+    checkHSBCMexico() {
         let deferred = $.Deferred();
 
-        $.ajax({ url: MERCHANT_URL, method: 'get' }).then((response) => {
-            this.initDatabase(response);
-
-            deferred.resolve();
-        }).fail(() => {
+        $.ajax({ url: DASHBOARD_URL, method: 'get' }).then((response) => {
+            if (response.includes('tempForm')) {
+                deferred.reject();
+            } else {
+                deferred.resolve();
+            }
+        }).fail((response) => {
             deferred.reject();
         });
 
         return deferred.promise();
-    }
-
-    initDatabase(response) {
-        const $html = $('<div>' + response.replace(/<img[^>]*>/g, '') + '</div>');
-        const merchant = Extension.cleanText($html.find('.sc-mkt-picker-switcher-txt').text())
-            .toLowerCase().replace(' ', '');
-        const marketplace = Extension.cleanText($html.find('#sc-mkt-picker-switcher-select option:selected').text())
-            .toLowerCase().replace('www.amazon', '');
-        this.db = new PouchDB(merchant + marketplace);
-        console.log("Connection to the database " + merchant + marketplace + " is now established.");
-    }
-
-    static cleanText(text) {
-        return text.replace(/(\r\n|\n|\r)/gm, '').trim().replace(/ +(?= )/g, '');
     }
 }

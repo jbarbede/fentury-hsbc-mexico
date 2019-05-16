@@ -9,8 +9,7 @@ require('bootstrap/dist/js/bootstrap.js');
 // PouchDB
 require('pouchdb/dist/pouchdb.js');
 // Extension
-require('./js/pixel.js');
-require('./js/detector.js');
+require('./js/importer.js');
 require('./js/puller.js');
 require('./js/popup.js');
 require('./js/extension.js');

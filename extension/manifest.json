@@ -1,10 +1,10 @@
 {
-  "name": "ZonDuplicatedOrders",
-  "short_name": "ZonDuplicatedOrders",
+  "name": "Fentury HSBC Mexico",
+  "short_name": "Fentury HSBC Mexico",
   "version": "0.0.1",
   "manifest_version": 2,
-  "description": "Find easily duplicated Amazon orders.",
-  "homepage_url": "https://zonpages.com",
+  "description": "Easily import your transactions from HSBC Mexico into Fentury",
+  "homepage_url": "https://fentury.com",
   "icons": {
     "16": "icons/16.png",
     "48": "icons/48.png",
@@ -12,7 +12,7 @@
   },
   "browser_action": {
     "default_icon": "icons/19.png",
-    "default_title": "ZonDuplicatedOrders",
+    "default_title": "Fentury HSBC Mexico",
     "default_popup": "popup.html"
   },
   "background": {
@@ -21,8 +21,8 @@
   },
   "content_security_policy": "script-src 'self' https://connect.facebook.net; object-src 'self'",
   "permissions": [
-    "alarms", "notifications", "tabs",
-    "*://sellercentral.amazon.com/orders-api*",
-    "*://sellercentral.amazon.com/hz/orders*"
+    "alarms", "cookies", "notifications", "storage", "tabs",
+    "*://*.fentury.com/*",
+    "*://*.hsbc.com.mx/*"
   ]
 }

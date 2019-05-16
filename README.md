@@ -2,4 +2,4 @@
 
 Go to `chrome://extensions/` and click on `Load unpacked` button.
 
-Browse to the `extension` folder and select it.
+Browse to the `extension` folder and select it.# fentury-hsbc-mexico

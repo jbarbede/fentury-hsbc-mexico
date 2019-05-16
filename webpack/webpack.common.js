@@ -21,7 +21,7 @@ module.exports = {
             { test: /\.(gif|png|jpg|svg|cur)$/, loader: 'file-loader?name=img/[name].[ext]' },
             { test: /\.css$/, use: [{ loader: "style-loader" }, { loader: "css-loader" }] },
             { test: /\.scss$/, use: [{ loader: "style-loader" }, { loader: "css-loader" }, { loader: "sass-loader" }] },
-            { test: /\.js$/, exclude: /(node_modules)/, loader: "babel-loader", query: { presets: ["env"] } },
+            { test: /\.js$/, exclude: /(node_modules)/, loader: "babel-loader", query: { presets: ["@babel/preset-env"] } },
             { test: /\.(eot|woff|ttf|woff2)/, loader: 'file-loader?name=fonts/[name].[ext]' },
             { test: /jquery\.js$/, loader: 'expose-loader?jQuery!expose-loader?$' },
             { test: /popper\.js$/, loader: 'expose-loader?Popper' },
