@@ -42,6 +42,35 @@
 
                 <form id="pull-transactions-form" method="post">
 
+                    <div class="form-group">
+                        <label for="hsbc-account">HSBC account</label>
+                        <div class="form-controls">
+                            <select name="accountIndex" id="hsbc-account" class="form-control"></select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label for="start-date">From</label>
+                                <div class="form-controls">
+                                    <input type="date" name="startDate" id="start-date" class="form-control" value="2019-05-15">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label for="end-date">To</label>
+                                <div class="form-controls">
+                                    <input type="date" name="endDate" id="end-date" class="form-control" value="2019-05-16">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
                     <button type="submit" class="btn btn-primary btn-lg btn-block">
                         Pull transactions
                     </button>

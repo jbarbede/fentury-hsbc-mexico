@@ -22,15 +22,15 @@ export default class TransactionsPuller {
         return deferred.promise();
     }
 
-    static query(startDate, endDate) {
+    static query(params) {
         let deferred = $.Deferred();
 
         this.getSessionStorage().then(function (accountIndex) {
             const payload = {
                 "retreiveTxnSummaryFilter": {
                     "txnDatRnge": {
-                        "fromDate": startDate,
-                        "toDate": endDate
+                        "fromDate": params.startDate,
+                        "toDate": params.endDate
                     },
                     "numOfRec": -1,
                     "txnAmtRnge": null,
@@ -39,7 +39,7 @@ export default class TransactionsPuller {
                     "fndName": ""
                 },
                 "acctIdr": {
-                    "acctIndex": accountIndex,
+                    "acctIndex": params.accountIndex,
                     "entProdTypCde": "19",
                     "entProdCatCde": "DDA"
                 },

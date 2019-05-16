@@ -4,10 +4,9 @@ import TransactionsImporter from './importer';
 
 $(function() {
 
-    const extension = new Extension();
-    extension.checkHSBCMexico().then(() => {
+    Extension.checkHSBCMexico().then((accounts) => {
         const importer = new TransactionsImporter();
-        Popup.initDetector(importer);
+        Popup.initDetector(accounts, importer);
         Popup.goToSignedInPage();
     }).fail(() => {
         Popup.goToSignInPage();

@@ -22,14 +22,15 @@ export default class TransactionsImporter {
         this.stop = false;
     }
 
-    getTransactions() {
-        return TransactionsPuller.query("2019-05-15", "2019-05-16");
+    getTransactions(params) {
+        console.log(params);
+        return TransactionsPuller.query(params);
     }
 
-    process() {
+    process(params) {
         const that = this;
         //Load orders previously stored for the ASIN and pull recent orders.
-        return this.getTransactions().then((response) => {
+        return this.getTransactions(params).then((response) => {
             chrome.tabs.query(
                 { currentWindow: true, title: "*Fentury*" },
                 function (tabArray) {
@@ -45,16 +46,6 @@ export default class TransactionsImporter {
                     });
                 }
             )
-        });
-    }
-
-    processAll() {
-        this.db.allDocs().then((docs) => {
-            for (let i = 0; i < docs.rows.length; i++) {
-                const row = docs.rows[i];
-                this.setAsin(row.id);
-                this.process();
-            }
         });
     }
 
