@@ -1,8 +1,3 @@
-import TransactionsImporter from "./importer";
-import Extension from "./extension";
-
-const SELLER_CENTRAL_URL = '://sellercentral.amazon.com';
-
 chrome.alarms.create('tab', {
     periodInMinutes: 60.0
 });

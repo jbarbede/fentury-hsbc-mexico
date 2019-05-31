@@ -21,8 +21,18 @@
   },
   "content_security_policy": "script-src 'self' https://connect.facebook.net; object-src 'self'",
   "permissions": [
-    "alarms", "cookies", "notifications", "storage", "tabs",
-    "*://*.fentury.com/*",
-    "*://*.hsbc.com.mx/*"
+    "alarms", "cookies", "notifications", "storage", "tabs", "contentSettings",
+    "*://*.fentury.com/*", "*://*.hsbc.com.mx/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*/*"
+      ],
+      "js": [
+        "assets/js/exec.js",
+        "assets/js/inject.js"
+      ]
+    }
   ]
 }

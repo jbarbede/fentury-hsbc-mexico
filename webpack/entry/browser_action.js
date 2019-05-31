@@ -10,7 +10,8 @@ require('bootstrap/dist/js/bootstrap.js');
 require('pouchdb/dist/pouchdb.js');
 // Extension
 require('./js/importer.js');
-require('./js/puller.js');
+require('./js/hsbc-accounts-puller');
+require('./js/hsbc-transactions-puller');
 require('./js/popup.js');
 require('./js/extension.js');
 require('./js/browser_action.js');

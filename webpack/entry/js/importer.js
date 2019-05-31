@@ -1,9 +1,9 @@
 import * as md5 from 'md5';
 
-import Extension from './extension';
-import TransactionsPuller from './puller';
+import HSBCTransactionsPuller from './hsbc-transactions-puller';
 
-const TRANSACTION_URL = 'https://www.fentury.com/frontend/transactions?';
+const TRANSACTIONS_URL = "https://www.fentury.com/frontend/reports/payee_overview?dates_filter=false&account_ids=89796-89760&gender=all&payee_names%5B%5D=";
+const TRANSACTION_URL = "https://www.fentury.com/frontend/transactions?";
 
 export default class TransactionsImporter {
 
@@ -13,18 +13,13 @@ export default class TransactionsImporter {
 
     init() {
         this.transactions = [];
-        this.totalTransactions = 0;
         this.processedTransactions = 0;
-        this.skippedTransactions = 0;
-        this.duplicatedTransactions = [];
-        this.pendingTransactions = [];
-        this.queries = [];
-        this.stop = false;
+        this.addedTransactions = 0;
+        this.existingTransactions = 0;
     }
 
     getTransactions(params) {
-        console.log(params);
-        return TransactionsPuller.query(params);
+        return HSBCTransactionsPuller.query(params);
     }
 
     process(params) {
@@ -41,8 +36,10 @@ export default class TransactionsImporter {
                         const CSRFToken = results[0];
                         console.log('Fentury token', CSRFToken);
                         for (let i = 0; i < response.txnSumm.length; i++) {
-                            that.processTransaction(response.txnSumm[i], CSRFToken);
+                            that.processTransaction(params, response.txnSumm[i], CSRFToken);
+                            that.processedTransactions++;
                         }
+                        localStorage.setItem('_last_end_date', params.endDate);
                     });
                 }
             )
@@ -55,22 +52,10 @@ export default class TransactionsImporter {
         return $.Deferred().resolve().promise();
     }
 
-    stopProcess() {
-        //Set the stop flag.
-        this.stop = true;
-
-        //Stop any AJAX query still running.
-        for (let i = 0; i < this.queries.length; i++) {
-            this.queries[i].abort();
-        }
-
-        return $.Deferred().resolve().promise();
-    }
-
-    processTransaction(transaction, CSRFToken) {
+    processTransaction(params, transaction, CSRFToken) {
         const that = this;
         const payee = md5(JSON.stringify(transaction));
-        fetch("https://www.fentury.com/frontend/reports/payee_overview?dates_filter=false&account_ids=89796-89760&gender=all&payee_names%5B%5D=" + payee, {
+        fetch(TRANSACTIONS_URL + payee, {
             "credentials": "include",
             "headers": {
                 "accept": "application/json, text/javascript, */*; q=0.01",
@@ -85,39 +70,42 @@ export default class TransactionsImporter {
             "body": null,
             "method": "GET",
             "mode": "cors"
-        }).then(function (payeeOverview) {
+        }).then((payeeOverview) => {
             console.log('Processing transaction', transaction, payee);
             if (payeeOverview.status === 200) {
-                payeeOverview.json().then(function (json) {
+                payeeOverview.json().then((json) => {
                     console.log('Payee exists?', json.data);
                     if (json.data.length === 0) {
                         if (transaction.txnTypeCde === 'D') {
-                            that.insertTransaction(transaction, payee, CSRFToken);
+                            that.insertTransaction(params, transaction, payee, CSRFToken);
 
                             console.log('Expense transaction added', transaction, payee);
                         } else {
-                            that.insertTransaction(transaction, payee, CSRFToken);
+                            that.insertTransaction(params, transaction, payee, CSRFToken);
 
                             console.log('Income transaction added', transaction, payee);
                         }
+                        this.addedTransactions++;
+                        $('#added-transactions').html(this.addedTransactions);
                     } else {
                         console.log('Transaction already added', transaction, payee);
+                        this.existingTransactions++;
+                        $('#existing-transactions').html(this.existingTransactions);
                     }
                 });
-
             } else {
                 console.log('Wrong status when getting payee details', payeeOverview.status);
             }
-        }, function (payeeOverview) {
-            console.log(payeeOverview);
+        }, (payeeOverview) => {
+            console.log('Error when getting payee details', payeeOverview);
         });
     }
 
-    insertTransaction(transaction, payee, CSRFToken) {
+    insertTransaction(params, transaction, payee, CSRFToken) {
         const payload = {
             "transaction": {
                 "made_on": transaction.txnDate,
-                "account_id": 89760, // HSBC México Premier Debit
+                "account_id": parseInt(params.fenturyAccount),
                 "currency_id": 97, //MXN
                 "category_id": 2009749, //Miscellaneous
                 "tags": [],
@@ -128,7 +116,7 @@ export default class TransactionsImporter {
             }
         };
 
-        fetch("https://www.fentury.com/frontend/transactions?", {
+        fetch(TRANSACTION_URL, {
             "credentials": "include",
             "headers": {
                 "accept": "application/json, text/javascript, *\/*; q=0.01",
