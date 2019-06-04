@@ -55,8 +55,7 @@ export default class Popup {
         const $html = $('body');
         $html.find('input[name=asin]').val('');
         $html.find('form').slideDown(() => {
-            $html.find('.progress-bar').addClass('progress-bar-animated').css('width', 0);
-            $html.find('#results h1').html('<i class="fa fa-spin fa-spinner"></i>');
+            $html.find('#processed-orders').empty();
             $html.find('#promotion-orders').html('0');
             $html.find('#skipped-orders').html('0');
             $html.find('#duplicated-orders').html('0');
@@ -66,15 +65,8 @@ export default class Popup {
 
     static finishHtml(detector) {
         const $html = $("#results");
-        $html.find('.progress-bar').removeClass('progress-bar-animated');
-        $html.find('#buttons').html('<div class="row">' +
-            '<div class="col-6">' +
-
-            '</div>' +
-            '<div class="col-6">' +
-            '<button id="btn-reset" type="button" class="btn btn-secondary btn-lg btn-block">New Import</button>' +
-            '</div>' +
-            '</div>');
+        $html.find('#processed-orders').html('<h3 class="text-success"><i class="fa fa-check"></i> Import completed</h3>');
+        $html.find('#buttons').html('<button id="btn-reset" type="button" class="btn btn-primary btn-lg btn-block">New Import</button>');
     }
 
     static objectifyForm(formArray) {
