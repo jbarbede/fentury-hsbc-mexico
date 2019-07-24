@@ -29,10 +29,8 @@
       "matches": [
         "*://*/*"
       ],
-      "js": [
-        "assets/js/exec.js",
-        "assets/js/inject.js"
-      ]
+      "js": ["js/inject.js"]
     }
-  ]
+  ],
+  "web_accessible_resources": ["js/content.js"]
 }
