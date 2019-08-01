@@ -19,8 +19,8 @@ export default class HSBCTransactionsPuller {
             },
             "acctIdr": {
                 "acctIndex": params.accountIndex,
-                "entProdTypCde": "19",
-                "entProdCatCde": "DDA"
+                "entProdTypCde": params.bankAccount.entProdTypCde,
+                "entProdCatCde": params.bankAccount.entProdCatCde
             },
             "pagingInfo": {
                 "startDetail": null,

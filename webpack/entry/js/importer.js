@@ -1,6 +1,7 @@
 import * as md5 from 'md5';
 
 import HSBCTransactionsPuller from './hsbc-transactions-puller';
+import HSBCAccountsPuller from "./hsbc-accounts-puller";
 
 const TRANSACTIONS_URL = "https://www.fentury.com/frontend/reports/payee_overview?dates_filter=false&account_ids=89796-89760&gender=all&payee_names%5B%5D=";
 const TRANSACTION_URL = "https://www.fentury.com/frontend/transactions?";
@@ -12,7 +13,6 @@ export default class TransactionsImporter {
     }
 
     init() {
-        this.transactions = [];
         this.processedTransactions = 0;
         this.addedTransactions = 0;
         this.existingTransactions = 0;
@@ -23,6 +23,12 @@ export default class TransactionsImporter {
     }
 
     process(params) {
+        for (let i = 0; i < HSBCAccountsPuller.accounts.countriesAccountList[0].acctLiteWrapper.length; i++) {
+            const account = HSBCAccountsPuller.accounts.countriesAccountList[0].acctLiteWrapper[i];
+            if (account.acctIndex === params.accountIndex) {
+                params.bankAccount = account;
+            }
+        }
         const that = this;
         //Load orders previously stored for the ASIN and pull recent orders.
         return this.getTransactions(params).then((response) => {
@@ -76,15 +82,21 @@ export default class TransactionsImporter {
                 payeeOverview.json().then((json) => {
                     console.log('Payee exists?', json.data);
                     if (json.data.length === 0) {
-                        if (transaction.txnTypeCde === 'D') {
-                            that.insertTransaction(params, transaction, payee, CSRFToken);
-
-                            console.log('Expense transaction added', transaction, payee);
+                        if (params.bankAccount.prodCatCde === 'CC') {
+                            transaction.txnAmt.amt = -transaction.txnAmt.amt;
+                            if (transaction.txnAmt.amt > 0) {
+                                console.log('Income transaction added', transaction, payee);
+                            } else {
+                                console.log('Expense transaction added', transaction, payee);
+                            }
                         } else {
-                            that.insertTransaction(params, transaction, payee, CSRFToken);
-
-                            console.log('Income transaction added', transaction, payee);
+                            if (transaction.txnTypeCde === 'D') {
+                                console.log('Expense transaction added', transaction, payee);
+                            } else {
+                                console.log('Income transaction added', transaction, payee);
+                            }
                         }
+                        that.insertTransaction(params, transaction, payee, CSRFToken);
                         this.addedTransactions++;
                         $('#added-transactions').html(this.addedTransactions);
                     } else {
