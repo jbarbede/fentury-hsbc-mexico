@@ -8,12 +8,12 @@ export default class HSBCTransactionsPuller {
         const payload = {
             "retreiveTxnSummaryFilter": {
                 "txnDatRnge": {
-                    "fromDate": params.startDate,
-                    "toDate": params.endDate
+                    "fromDate": params.bankAccount.entProdCatCde === 'TDC' ? null : params.startDate,
+                    "toDate": params.bankAccount.entProdCatCde === 'TDC' ? null : params.endDate
                 },
                 "numOfRec": -1,
                 "txnAmtRnge": null,
-                "txnHistType": null,
+                "txnHistType": params.bankAccount.entProdCatCde === 'TDC' ? "B" : "",
                 "fndTxnTyp": "",
                 "fndName": ""
             },
